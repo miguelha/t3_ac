@@ -21,7 +21,7 @@ void putpixel(struct IMG * img,int x, int y, int color);
 
 
 
-void julia(struct IMG *, int xpt, int ypt);
+void julia(struct IMG *, int xpt, int ypt, int maxiter);
 
 void saveimg(struct IMG * img, char * fname);
 

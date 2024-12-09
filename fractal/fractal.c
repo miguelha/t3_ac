@@ -9,7 +9,14 @@
 #include <stdio.h>
 #include "fractalfuncs.h"
 
-void Generate(struct IMG * img){
+#ifdef _OPEN_MP
+    #include <omp.h>
+#else
+    #define omp_get_num_threads() 0
+    #define omp_get_thread_num() 0
+#endif
+
+void Generate(struct IMG * img, int maxiter){
     int j=0;
     int scrsizex,scrsizey;
     scrsizex=img->cols;
@@ -20,7 +27,7 @@ void Generate(struct IMG * img){
 	int i=0;
 	do							  			   //Start horizontal loop
 	{				
-	    julia(img,i,j);							   
+	    julia(img,i,j,maxiter);
 	    i++;
 	}
 	while ( (i<scrsizex)  );	  //End horizontal loop
@@ -89,15 +96,29 @@ int main(int argc, char ** argv){
     img->cols=resx;
     img->rows=resy;
     
-	
+	/* ORIGINAL
     t1=clock();
     Generate(img);
     t2=clock();
     printf("Julia Fractal gerado em %6.3f secs.\n",(((double)(t2-t1))/CLOCKS_PER_SEC));
     //	mandel(img,resx,resy);
     saveimg(img,"julia.pgm");
-    
+
     if(nepocs>0)
-	difuse(img,nepocs,alpha);
+    difuse(img,nepocs,alpha);
+    */
+    char filename[80];
+    for(int i = 0; i < 50; i++){
+        t1=clock();
+        Generate(img, i);
+        t2=clock();
+        printf("Julia Fractal gerado em %6.3f secs com %d iterações\n",(((double)(t2-t1))/CLOCKS_PER_SEC), i+1);
+        //	mandel(img,resx,resy);
+        sprintf(filename, "images/julia_%02d.pgm", i);
+        saveimg(img, filename);
+    }
+
+    if(nepocs>0)
+    difuse(img,nepocs,alpha);
 }
 										  

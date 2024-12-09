@@ -35,7 +35,7 @@ void putpixel(struct IMG * img,int x, int y, int color){
     constant can be changed by the user.
 */
 
-void julia(struct IMG * img, int xpt, int ypt)
+void julia(struct IMG * img, int xpt, int ypt, int maxiter)
 {
     int resx=img->cols;
     int resy=img->rows;
@@ -48,7 +48,20 @@ void julia(struct IMG * img, int xpt, int ypt)
     long double ynew=0;
     int k;
 	
+    /* ORIGINAL JULIA ITERATION
     for(k=0;k<=initer;k++)  // Each pixel loop
+    {
+	//The Julia Function Z=Z*Z+c (of complex numbers) into x and y parts
+	xnew=x*x-y*y + conx;
+	ynew=2*x*y   + cony;
+	x=xnew;
+	y=ynew;
+	if ( (x*x+y*y)>4 ) break;  // Break condition Meaning the loop will go
+	// on to a value of infinity.
+    }                      // End each pixel loop
+    */
+
+    for(k=0;k<=maxiter;k++)  // Each pixel loop
     {
 	//The Julia Function Z=Z*Z+c (of complex numbers) into x and y parts
 	xnew=x*x-y*y + conx;
