@@ -24,7 +24,7 @@ void Generate(struct IMG * img, int maxiter){
     #ifdef _OPENMP
     #pragma omp parallel
     {
-        #pragma omp for // divide all rows of an image evenly between threads
+        #pragma omp for collapse(2) schedule(static,5) // divide all rows of an image evenly, 5 by 5, between threads
         for(int j = 0; j < scrsizey; j++){
             for(int i = 0; i < scrsizex; i++){
                 julia(img, i, j, maxiter);
@@ -65,7 +65,11 @@ void difuse(struct IMG * imgin, int nepocs, float alpha){
 }
     
 int main(int argc, char ** argv){
+    #ifdef _OPENMP
+    double t1, t2;
+    #else
     clock_t t1,t2;
+    #endif
     int resx,resy;
     struct IMG * img;
     int nepocs=0;
@@ -101,16 +105,49 @@ int main(int argc, char ** argv){
     img->cols=resx;
     img->rows=resy;
     
+    #ifdef _OPENMP
     char filename[80];
-    for(int i = 0; i < 50; i++){
-        t1=clock();
+    double elapsed_time;
+    double total_elapsed_time = 0;
+
+    for(int i = 0; i < 100; i++){
+        t1=omp_get_wtime();
         Generate(img, i);
-        t2=clock();
-        printf("Julia Fractal gerado em %6.3f secs com %d iterações\n",(((double)(t2-t1))/CLOCKS_PER_SEC), i+1);
+        t2=omp_get_wtime();
+
+        elapsed_time = (t2-t1);
+        total_elapsed_time += elapsed_time;
+
+        printf("Julia Fractal gerado em %6.3f secs com %d iterações\n", elapsed_time, i+1);
         //	mandel(img,resx,resy);
         sprintf(filename, "julia/julia_%02d.pgm", i);
         saveimg(img, filename);
     }
+
+    printf("\nTempo total: %6.3f secs (com OpenMP)\n", total_elapsed_time);
+    #else
+    char filename[80];
+    double elapsed_time;
+    double total_elapsed_time = 0;
+
+    for(int i = 0; i < 100; i++){
+        t1=clock();
+        Generate(img, i);
+        t2=clock();
+
+        elapsed_time = (((double)(t2-t1))/CLOCKS_PER_SEC);
+        total_elapsed_time += elapsed_time;
+
+        printf("Julia Fractal gerado em %6.3f secs com %d iterações\n", elapsed_time, i+1);
+        //	mandel(img,resx,resy);
+        sprintf(filename, "julia/julia_%02d.pgm", i);
+        saveimg(img, filename);
+    }
+
+    printf("\nTempo total: %6.3f secs (sem OpenMP)\n", total_elapsed_time);
+    #endif
+
+
 
     if(nepocs>0)
     difuse(img,nepocs,alpha);

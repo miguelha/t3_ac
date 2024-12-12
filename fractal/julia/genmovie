@@ -5,6 +5,6 @@ do
 convert $i `basename $i .pgm`.png
 rm $i
 done
-ffmpeg -framerate 5 -i julia_%02d.png -s:v 3840x2160 -c:v libx264 \
+ffmpeg -framerate 3 -i julia_%02d.png -s:v 3840x2160 -c:v libx264 \
 -profile:v high -crf 20 -pix_fmt yuv420p julia.mp4
 
